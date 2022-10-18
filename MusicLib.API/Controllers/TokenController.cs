@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MusicLib.API.Models;
 using MusicLib.API.Models.Database;
@@ -40,11 +41,11 @@ namespace MusicLib.API.Controllers
 
             // TODO: Hash Password
             
-            var user = db.Users.FirstOrDefault(u => u.Email == userData.Email && u.Password == userData.Password);
+            var user = db.Users.Include(u => u.Role).FirstOrDefault(u => u.Email == userData.Email && u.Password == userData.Password);
 
             if (user == null)
             {
-                return BadRequest("Wrong Credentials!");
+                return BadRequest(new{ status = "Denied", message ="Wrong Credentials!"});
             }
 
             var claims = new[]
@@ -56,6 +57,7 @@ namespace MusicLib.API.Controllers
                 new Claim("DisplayName", user.DisplayName),
                 new Claim("UserName", user.UserName),
                 new Claim("Email", user.Email),
+                new Claim("Role",user.Role.Name)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
@@ -67,7 +69,9 @@ namespace MusicLib.API.Controllers
                 expires: DateTime.Now.AddMinutes(1),
                 signingCredentials: signIn);
 
-            return Ok(new JwtSecurityTokenHandler().WriteToken(token));
+            user.Password = string.Empty;
+            
+            return Ok(new { status = "ok", message = "Logged in!", accessToken = new JwtSecurityTokenHandler().WriteToken(token) , user = user});
         }
     }
 }

@@ -12,5 +12,5 @@ public class Role
     [Required]
     public string Name { get; set; }
 
-    public List<User> Users { get; set; }
+    private List<User> Users { get; set; }
 }
