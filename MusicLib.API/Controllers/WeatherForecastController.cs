@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MusicLib.API.Models.Database;
 
 namespace MusicLib.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class WeatherForecastController : ControllerBase
@@ -13,20 +16,23 @@ public class WeatherForecastController : ControllerBase
 
     private readonly ILogger<WeatherForecastController> _logger;
 
-    public WeatherForecastController(ILogger<WeatherForecastController> logger)
+    public WeatherForecastController(ILogger<WeatherForecastController> logger, DatabaseContext context)
     {
         _logger = logger;
     }
 
     [HttpGet(Name = "GetWeatherForecast")]
-    public IEnumerable<WeatherForecast> Get()
+    public User Get()
     {
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+        var claims = HttpContext.User.Claims;
+        
+
+        return new User()
+        {
+            ID = Int32.Parse(claims.FirstOrDefault(c => c.Type == "UserId").Value),
+            UserName = claims.FirstOrDefault(c => c.Type == "UserName").Value,
+            DisplayName = claims.FirstOrDefault(c => c.Type == "DisplayName").Value,
+            Email = claims.FirstOrDefault(c => c.Type == "Email").Value,
+        };
     }
 }
