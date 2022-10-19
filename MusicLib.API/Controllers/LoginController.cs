@@ -8,28 +8,30 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MusicLib.API.Models;
 using MusicLib.API.Models.Database;
+using MusicLib.API.Models.Login;
 
 namespace MusicLib.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TokenController : ControllerBase
+    public class LoginController : ControllerBase
     {
-        public IConfiguration _config;
-        private DatabaseContext db;
         
-        public TokenController(IConfiguration config, DatabaseContext context)
+        private readonly IConfiguration _config;
+        private readonly DatabaseContext db;
+        
+        public LoginController(IConfiguration config, DatabaseContext context)
         {
             _config = config;
             db = context;
         }
         
-
-        // POST: api/Token
+        // POST: api/Login
         [AllowAnonymous]
         [HttpPost]
         public IActionResult Post(LoginData userData)
@@ -69,9 +71,16 @@ namespace MusicLib.API.Controllers
                 expires: DateTime.Now.AddMinutes(1),
                 signingCredentials: signIn);
 
-            user.Password = string.Empty;
+            var userInfo = new LoginUserInfo()
+            {
+                ID = user.ID,
+                DisplayName = user.DisplayName,
+                UserName = user.UserName,
+                Email = user.Email,
+                Role = user.Role.Name
+            };
             
-            return Ok(new { status = "ok", message = "Logged in!", accessToken = new JwtSecurityTokenHandler().WriteToken(token) , user = user});
+            return Ok(new { status = "ok", message = "Logged in!", accessToken = new JwtSecurityTokenHandler().WriteToken(token) , user = userInfo});
         }
     }
 }

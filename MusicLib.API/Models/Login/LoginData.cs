@@ -1,4 +1,4 @@
-﻿namespace MusicLib.API.Models;
+﻿namespace MusicLib.API.Models.Login;
 
 public class LoginData
 {
