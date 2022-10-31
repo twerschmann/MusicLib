@@ -8,7 +8,7 @@ public class User
     [Key]
     public int ID { get; set; }
 
-    public DateTime Created { get; set; } = DateTime.Now;
+    public DateTime? Created { get; set; } = DateTime.Now;
 
     [Required]
     public string UserName { get; set; }
